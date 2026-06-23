@@ -12,10 +12,10 @@ std::ostream& operator<<(std::ostream& os, const Bfprog::Token& token){
 	os << '{' << op_name;
 	if(token.op==Bfprog::Token::PLUS || token.op==Bfprog::Token::MINUS){
 		os << ", Count: " << token.count;
-	}else if(token.op==Bfprog::Token::RBRACKET || token.op==Bfprog::Token::LBRACKET){
+	}else if(token.op==Bfprog::Token::LBRACKET || token.op==Bfprog::Token::RBRACKET){
 		os << ", Match: ";
-		if(token.match->op==Bfprog::Token::RBRACKET) os << "[";
-		else if(token.match->op==Bfprog::Token::LBRACKET) os << "]";
+		if(token.match->op==Bfprog::Token::LBRACKET) os << "[";
+		else if(token.match->op==Bfprog::Token::RBRACKET) os << "]";
 		
 		//os << ", Match addr:" << token.match;
 		/*unsigned int i = 0;
@@ -57,9 +57,9 @@ Bfprog::Parse_Result Bfprog::parse_string(const char* prog){
 		}
 	}while(c != '\0');
 
-	if(!rbracket_stack.empty())
-		return {Parse_Result::UNMATCHED_RBRACKET,
-			last_rbracket_position.row, last_rbracket_position.column};
+	if(!lbracket_stack.empty())
+		return {Parse_Result::UNMATCHED_LBRACKET,
+			last_lbracket_position.row, last_lbracket_position.column};
 
 	return {Parse_Result::OK, 0, 0};
 }
@@ -86,9 +86,9 @@ Bfprog::Parse_Result Bfprog::parse_file(const char* filename){
 	}while(c != EOF);
 	parse_char('\0');
 
-	if(!rbracket_stack.empty())
-		return {Parse_Result::UNMATCHED_RBRACKET,
-			last_rbracket_position.row, last_rbracket_position.column};
+	if(!lbracket_stack.empty())
+		return {Parse_Result::UNMATCHED_LBRACKET,
+			last_lbracket_position.row, last_lbracket_position.column};
 
 	return {Parse_Result::OK, 0, 0};
 }
@@ -141,18 +141,18 @@ Bfprog::Parse_Result Bfprog::parse_char(char c){
 			break;
 		case '[':
 			ADD_PLUS_OR_MINUS
-			token_list.push_back(Token{Token::RBRACKET, 0});
-			rbracket_stack.push(std::prev(token_list.end()));
-			last_rbracket_position = {char_row, char_column};
+			token_list.push_back(Token{Token::LBRACKET, 0});
+			lbracket_stack.push(std::prev(token_list.end()));
+			last_lbracket_position = {char_row, char_column};
 			break;
 		case ']':
 			ADD_PLUS_OR_MINUS
-			token_list.push_back(Token{Token::LBRACKET, 0});
-			if(rbracket_stack.empty())
-				return {Parse_Result::UNMATCHED_LBRACKET, char_row, char_column};
-			rbracket_stack.top()->match = std::prev(token_list.end());
-			token_list.back().match = rbracket_stack.top();
-			rbracket_stack.pop();
+			token_list.push_back(Token{Token::RBRACKET, 0});
+			if(lbracket_stack.empty())
+				return {Parse_Result::UNMATCHED_RBRACKET, char_row, char_column};
+			lbracket_stack.top()->match = std::prev(token_list.end());
+			token_list.back().match = lbracket_stack.top();
+			lbracket_stack.pop();
 			break;
 		case '\0':
 			ADD_PLUS_OR_MINUS
@@ -198,21 +198,18 @@ void Bfprog::Opfuncs::out(OPFUNC_ARGS){
 	DEBUG_OPFUNC_PRINT("Out called");
 }
 void Bfprog::Opfuncs::in(OPFUNC_ARGS){
-	std::string str;
-	std::cout<<"> ";
-	std::cin>>str;
-	memory[header] = (int)str[0];
+	memory[header] = std::cin.get();
 	DEBUG_OPFUNC_PRINT("In called");
 }
-void Bfprog::Opfuncs::rbracket(OPFUNC_ARGS){
+void Bfprog::Opfuncs::lbracket(OPFUNC_ARGS){
 	if(memory[header] == 0)
 		it = it->match;
-	DEBUG_OPFUNC_PRINT("Rbracket called");
+	DEBUG_OPFUNC_PRINT("Lbracket called");
 }
-void Bfprog::Opfuncs::lbracket(OPFUNC_ARGS){
+void Bfprog::Opfuncs::rbracket(OPFUNC_ARGS){
 	if(memory[header] != 0)
 		it = it->match;
-	DEBUG_OPFUNC_PRINT("Lbracket called");
+	DEBUG_OPFUNC_PRINT("Rbracket called");
 }
 
 Bfprog::Run_Result Bfprog::run(){
@@ -255,11 +252,11 @@ void Bfprog::Op_genc::in(OP_GENC_ARGS){
 	outfile << "*p = (int)getchar();" << std::endl;
 }
 
-void Bfprog::Op_genc::rbracket(OP_GENC_ARGS){
+void Bfprog::Op_genc::lbracket(OP_GENC_ARGS){
 	outfile << "while(*p){" << std::endl;
 }
 
-void Bfprog::Op_genc::lbracket(OP_GENC_ARGS){
+void Bfprog::Op_genc::rbracket(OP_GENC_ARGS){
 	outfile << "}" << std::endl;
 }
 

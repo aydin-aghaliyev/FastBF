@@ -20,8 +20,8 @@ public:
 			MINUS=3,
 			OUT=4,
 			IN=5,
-			RBRACKET=6,
-			LBRACKET=7} op;
+			LBRACKET=6,
+			RBRACKET=7} op;
 		union{
 			unsigned int count;
 			//Token* match;
@@ -50,7 +50,7 @@ public:
 
 	static constexpr const char* const op_names[8] = {"RIGHT", "LEFT",
 		"PLUS", "MINUS", "OUT",
-		"IN", "RBRACKET", "LBRACKET"};
+		"IN", "LBRACKET", "RBRACKET"};
 
 	const std::list<Token>& get_token_list();
 	const unsigned int get_memory_size();
@@ -67,8 +67,8 @@ private:
 	enum{COUNTING_NONE, COUNTING_PLUS, COUNTING_MINUS} counting;
 	unsigned int op_count;
 	std::list<Token> token_list;
-	std::stack<std::list<Token>::iterator> rbracket_stack;
-	struct{unsigned int row, column;} last_rbracket_position;
+	std::stack<std::list<Token>::iterator> lbracket_stack;
+	struct{unsigned int row, column;} last_lbracket_position;
 
 	Parse_Result parse_char(char c);
 
@@ -85,8 +85,8 @@ private:
 	};
 
 	inline static void(*op_functions[8])(OPFUNC_ARGS) = {
-		&Bfprog::Opfuncs::right, &Bfprog::Opfuncs::left, &Bfprog::Opfuncs::plus, &Bfprog::Opfuncs::minus, 
-		&Bfprog::Opfuncs::out, &Bfprog::Opfuncs::in, &Bfprog::Opfuncs::rbracket, &Bfprog::Opfuncs::lbracket, 
+		&Bfprog::Opfuncs::right, &Bfprog::Opfuncs::left, &Bfprog::Opfuncs::plus, &Bfprog::Opfuncs::minus,
+		&Bfprog::Opfuncs::out, &Bfprog::Opfuncs::in, &Bfprog::Opfuncs::lbracket, &Bfprog::Opfuncs::rbracket,
 	};
 
 	#define OP_GENC_ARGS std::list<Token>::iterator& it, std::ofstream& outfile
@@ -102,8 +102,8 @@ private:
 	};
 
 	inline static void(*op_genc_funcs[8])(OP_GENC_ARGS) = {
-		&Bfprog::Op_genc::right, &Bfprog::Op_genc::left, &Bfprog::Op_genc::plus, &Bfprog::Op_genc::minus, 
-		&Bfprog::Op_genc::out, &Bfprog::Op_genc::in, &Bfprog::Op_genc::rbracket, &Bfprog::Op_genc::lbracket, 
+		&Bfprog::Op_genc::right, &Bfprog::Op_genc::left, &Bfprog::Op_genc::plus, &Bfprog::Op_genc::minus,
+		&Bfprog::Op_genc::out, &Bfprog::Op_genc::in, &Bfprog::Op_genc::lbracket, &Bfprog::Op_genc::rbracket,
 	};
 };
 
